@@ -1,0 +1,84 @@
+Install necessary packages:
+[node1 ~]# apt update; apt install ca-certificates curl
+
+➢ Install containerd.io package:
+[node1 ~]# dpkg -i containerd.io_1.7.25-1_amd64.deb
+
+================================== Configure Containerd =================================
+
+➢ Retrieve the default containerd configuration and save it to /etc/containerd/config.toml:
+[node1 ~]# containerd config default > /etc/containerd/config.toml
+
+➢ Replace the value of "SystemdCgroup" from "false" to "true" in the config.toml file:
+[node1 ~]# sed -E -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+
+➢ Reload the systemd daemon to apply the changes:
+[node1 ~]# systemctl daemon-reload
+
+➢ Restart the containerd service to apply the updated configuration:
+[node1 ~]# systemctl restart containerd
+
+============================== Install Kubeadm/Kubectl/Kubelet ==========================
+
+
+➢ Turn off Swap Memory :
+[node1 ~]# swapoff –a; sed -i '\|swap|s|^/|#/|g' /etc/fstab
+[node1 ~]# free -h
+
+➢ Load two recommended Kernel modules (br_netfilter & overlay):
+[node1 ~]# modprobe br_netfilter overlay
+
+➢ Enable IPv4 forwarding Kernel parameter in sysctl.conf:
+[node1 ~]# sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+
+➢ Reload sysctl settings & check if IPv4 forwarding is enabled:
+[node1 ~]# sysctl --system; sysctl -a | grep "net.ipv4.ip_forward = 1"
+
+➢ Install necessary packages for Kubernetes:
+[node1 ~]# apt update; apt install apt-transport-https ca-certificates curl conntrack -y
+
+➢ Install All .deb packages By dpkg :
+[node ~]# dpkg -i *.deb 
+
+➢ Mark kubelet, kubeadm, and kubectl as held to prevent automatic upgrades:
+[node1 ~]# apt-mark hold kubelet kubeadm kubectl
+
+
+
+
+============================== Install Kubeadm/Kubectl/Kubelet ==========================
+
+➢ command for add auto completion fot kubeadm & kubectl:
+[node1 ~]# kubeadm completion bash > /etc/bash_completion.d/kubeadm
+[node1 ~]# kubectl completion bash > /etc/bash_completion.d/kubectl
+[node1 ~]# bash -l
+
+
+
+
+============================== Install Kubeadm/Kubectl/Kubelet ==========================
+
+➢ import K8s images manually :
+[node1 ~]# ctr -n k8s.io images import all-k8s-images.tar
+[node1 ~]# crictl images
+
+
+
+
+============================== Config Control-plane Node ==========================
+
+➢ Config Control-plane Node with kube-flannel ip range ( Replace <Contro-plane Node ip> with Your Master control-plane Node Ip  ) : 
+[node1 ~]# kubeadm init --apiserver-advertise-address <Contro-plan Node ip> --pod-network-cidr 10.244.0.0/16 --control-plane-endpoint <Contro-plan Node ip>:6443 --upload-certs
+
+
+
+============================== Config kube-flannel ==========================
+
+
+➢ Deploying Flannel with kubectl( Befor Deploying , Set Systen DNS at ==> 8.8.8.8 ) :
+[node1 ~]# kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+
+
+
+
